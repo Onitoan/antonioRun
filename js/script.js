@@ -23,7 +23,7 @@ const loop = setInterval(() => {
     antonio.style.bottom = `${antonioPosition}px`;
 
     antonio.src = './images/end.png';
-    antonio.style.width = '110px'
+    antonio.style.width = '96px'
     antonio.style.marginLeft = '50px'
     dog.classList.add('hide')
 
