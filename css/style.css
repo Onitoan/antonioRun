@@ -1,101 +1,778 @@
+/* ============================================================
+   ANTONIO RUN - ESTILOS OFICIAIS BASEADOS NO DESIGN DO FIGMA
+   ============================================================ */
+
+@import url('https://fonts.cdnfonts.com/css/super-mario-256');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --color-menu-bg: #272b48;
+  --color-btn-red: #961f2c;
+  --color-btn-red-hover: #b42535;
+  --color-btn-green: #3d8244;
+  --color-btn-green-hover: #489b51;
+  --color-hud-bg: rgba(24, 24, 28, 0.72);
+  --color-input-bg: #d9d9d9;
+  --color-border: #131313;
+  --font-retro: 'Super Mario 256', 'Press Start 2P', monospace;
+  --font-hud: 'Super Mario 256', 'Outfit', sans-serif;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #1e2238 0%, #0d0f1a 100%);
+  font-family: var(--font-retro);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Utilitário */
 .hide {
-  display: none;
+  display: none !important;
+}
+
+/* ============================================================
+   CONTAINER DO JOGO (RESPONSIVO PARA PC E CELULAR)
+   ============================================================ */
+.game-wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 1100px;
+  max-height: 620px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .game-board {
-  width: 80%;
-  height: 400px;
-  border: 3px solid rgb(19, 19, 19);
-  margin: 30px auto 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 60%, #5cb85c 60%, #3e8e41 100%);
+  border: 4px solid var(--color-border);
+  border-radius: 18px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(150, 31, 44, 0.2);
+  touch-action: manipulation;
 }
 
+/* Cenário de fundo infinito */
 .scenery {
   display: flex;
   position: absolute;
-  height: 400px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  width: 4000px;
+  animation: scenery-scroll 16s infinite linear;
+  will-change: transform;
+}
+
+.scenery img {
+  height: 100%;
   width: 2000px;
-  animation: scenery-animations 20s infinite linear;
+  min-width: 2000px;
+  object-fit: fill;
+  pointer-events: none;
 }
 
-.dog {
-  position: absolute;
-  bottom: 24px;
-  width: 72px;
-  animation: dog-animation 4.5s infinite linear;
+.scenery.paused, .clouds.paused, .dog.paused {
+  animation-play-state: paused !important;
 }
 
-.antonio {
-  position: absolute;
-  width: 60px;
-  bottom: 27px;
-}
-
-.jump {
-  animation: jump 500ms ease-out;
-}
-
+/* Nuvens no céu */
 .clouds {
   position: absolute;
-  width: 150px;
-  animation: clouds-animations 20s infinite linear;
+  top: 25px;
+  width: 170px;
+  pointer-events: none;
+  opacity: 0.95;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+  animation: clouds-scroll 18s infinite linear;
 }
 
-@keyframes dog-animation {
-  from {
-    right: -80px;
-  }
-  to {
-    right: 100%;
-  }
+/* Personagem: Antonio */
+.antonio {
+  position: absolute;
+  bottom: 30px;
+  left: 40px;
+  width: 65px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.25));
 }
 
-@keyframes jump {
+.antonio.jump {
+  animation: jump-curve 520ms ease-out;
+}
+
+/* Obstáculo: Pretinha (Cachorrinho) */
+.dog {
+  position: absolute;
+  bottom: 26px;
+  width: 76px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.25));
+}
+
+.dog.running {
+  animation: dog-run 3.6s infinite linear;
+}
+
+/* Container e Itens de Moedas Coletáveis */
+.coins-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+}
+
+.coin-item {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 3px 6px rgba(255, 215, 0, 0.6));
+  animation: coin-spin 600ms infinite steps(6);
+}
+
+.coin-item.collected {
+  animation: coin-collect-pop 300ms ease-out forwards;
+}
+
+/* Floating scores (+2!) */
+.floating-score {
+  position: absolute;
+  font-family: var(--font-retro);
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 2px 2px 0 #b38600, -1px -1px 0 #000;
+  pointer-events: none;
+  z-index: 25;
+  animation: float-up-fade 700ms ease-out forwards;
+}
+
+/* ============================================================
+   HUD SUPERIOR (EXATAMENTE COMO NO FIGMA)
+   ============================================================ */
+.game-hud {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.hud-card {
+  background: var(--color-hud-bg);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.hud-label {
+  font-size: 12px;
+  color: #d1d5db;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
+}
+
+.hud-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 2px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.hud-player .hud-value {
+  color: #ffd166;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-coins-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-coin-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.hud-coins .hud-value {
+  color: #ffde59;
+}
+
+.sound-toggle-btn {
+  pointer-events: auto;
+  background: var(--color-hud-bg);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.sound-toggle-btn:hover {
+  transform: scale(1.08);
+  background: rgba(45, 45, 55, 0.85);
+}
+
+/* Indicador de toque na tela para celular */
+.mobile-touch-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #ffd700;
+  pointer-events: none;
+  z-index: 15;
+  animation: pulse-hint 1.5s infinite;
+}
+
+/* ============================================================
+   MÁSCARA E MODAIS (ESTILO FIGMA)
+   ============================================================ */
+.screen-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 20, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 30;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.screen-mask.hide {
+  display: none;
+  opacity: 0;
+}
+
+.game-modal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 40;
+  padding: 16px;
+}
+
+/* Box comum dos Modais */
+.menu-box, .game-over-box, .ranking-box {
+  background: var(--color-menu-bg);
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 30px 36px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(39, 43, 72, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Moedas decorativas no Menu */
+.decor-coins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.decor-coin {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  opacity: 0.7;
+}
+
+.decor-coin.c1 { top: 20px; left: 30px; animation: float-coin 3s infinite ease-in-out; }
+.decor-coin.c2 { top: 40px; right: 40px; animation: float-coin 3.5s infinite ease-in-out 0.5s; }
+.decor-coin.c3 { bottom: 35px; left: 45px; animation: float-coin 2.8s infinite ease-in-out 1s; }
+.decor-coin.c4 { bottom: 50px; right: 50px; animation: float-coin 3.2s infinite ease-in-out 1.5s; }
+.decor-coin.c5 { top: 120px; right: 25px; animation: float-coin 3.8s infinite ease-in-out 0.8s; }
+
+/* Personagens ilustrativos nas pontas do modal */
+.menu-hero-img {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: 62px;
+  pointer-events: none;
+}
+
+.menu-dog-img {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 65px;
+  pointer-events: none;
+}
+
+/* Logo oficial do jogo */
+.menu-logo-container {
+  margin-bottom: 10px;
+}
+
+.menu-logo-img {
+  max-width: 240px;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+
+.menu-subtitle {
+  font-size: 15px;
+  color: #ffffff;
+  font-weight: 700;
+  margin-bottom: 22px;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+
+/* Card de entrada do Jogador */
+.menu-input-card {
+  background: var(--color-input-bg);
+  border-radius: 18px;
+  padding: 10px 20px;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.menu-input-label {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 700;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+
+.menu-input-field {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-retro);
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+}
+
+/* Botões */
+.menu-btn {
+  font-family: var(--font-retro);
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 34px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0,0,0,0.3);
+  transition: all 0.15s ease;
+  text-transform: lowercase;
+}
+
+.menu-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.menu-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+.start-btn {
+  background: var(--color-btn-red);
+  margin-bottom: 22px;
+}
+
+.green-btn {
+  background: var(--color-btn-green);
+  border-radius: 20px;
+}
+
+.green-btn:hover {
+  background: var(--color-btn-green-hover);
+}
+
+/* Instruções */
+.menu-instructions-card {
+  background: rgba(217, 217, 217, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 18px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.menu-instructions-card p {
+  font-size: 11px;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   MODAL DE GAME OVER
+   ============================================================ */
+.game-over-banner-container {
+  margin-bottom: 8px;
+}
+
+.game-over-banner-img {
+  max-width: 180px;
+  height: auto;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+}
+
+.game-over-title {
+  font-size: 18px;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.round-stats-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.stat-pill.highlight {
+  background: rgba(255, 215, 0, 0.18);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  color: #ffd700;
+}
+
+.stat-label {
+  color: #9ca3af;
+}
+
+.stat-pill.highlight .stat-label {
+  color: #fef08a;
+}
+
+.modal-buttons-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* ============================================================
+   MODAL DE RANKING
+   ============================================================ */
+.ranking-box {
+  max-width: 680px;
+}
+
+.ranking-title {
+  font-size: 22px;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.ranking-table-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: center;
+}
+
+.ranking-table thead {
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffd700;
+}
+
+.ranking-table th {
+  padding: 10px 8px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.ranking-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.rank-pos {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.rank-1 .rank-pos { color: #ffd700; }
+.rank-2 .rank-pos { color: #c0c0c0; }
+.rank-3 .rank-pos { color: #cd7f32; }
+
+.rank-score {
+  font-weight: 800;
+  color: #ffd700;
+}
+
+.ranking-rules-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 8px 16px;
+  margin-bottom: 18px;
+  font-size: 10px;
+  color: #d1d5db;
+}
+
+/* ============================================================
+   ANIMAÇÕES KEYFRAMES
+   ============================================================ */
+@keyframes scenery-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-2000px); }
+}
+
+@keyframes clouds-scroll {
+  0% { right: -250px; }
+  100% { right: 100%; }
+}
+
+@keyframes dog-run {
+  from { right: -100px; }
+  to { right: 100%; }
+}
+
+@keyframes jump-curve {
   0% {
-    bottom: 42px;
+    bottom: 30px;
   }
-
-  40% {
+  35% {
     bottom: 180px;
   }
-
   50% {
+    bottom: 195px;
+  }
+  65% {
     bottom: 180px;
   }
-
-  60% {
-    bottom: 180px;
-  }
-
   100% {
-    bottom: 42px;
+    bottom: 30px;
   }
 }
 
-@keyframes clouds-animations {
-  from {
-    right: -550px;
-  }
-
-  to {
-    right: 100%;
-  }
+@keyframes coin-spin {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0.2); }
+  100% { transform: scaleX(1); }
 }
 
-@keyframes scenery-animations {
-  from {
-    right: 0;
-  }
-
-  to {
-    right: 2000px;
-  }
+@keyframes coin-collect-pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6) translateY(-20px); opacity: 0.8; }
+  100% { transform: scale(2) translateY(-40px); opacity: 0; }
 }
 
+@keyframes float-up-fade {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+@keyframes float-coin {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes modal-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse-hint {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(0.96); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+}
+
+/* ============================================================
+   RESPONSIVIDADE (MOBILE / DISPOSITIVOS MENORES)
+   ============================================================ */
+@media (max-width: 768px) {
+  .game-wrapper {
+    padding: 0;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100vh;
+  }
+
+  .game-board {
+    border-radius: 0;
+    border: none;
+  }
+
+  .game-hud {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .hud-card {
+    padding: 6px 10px;
+    border-radius: 12px;
+  }
+
+  .hud-label {
+    font-size: 9px;
+  }
+
+  .hud-value {
+    font-size: 16px;
+  }
+
+  .hud-player .hud-value {
+    max-width: 90px;
+  }
+
+  .hud-coin-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .sound-toggle-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .menu-box, .game-over-box, .ranking-box {
+    padding: 20px 16px;
+    border-radius: 18px;
+  }
+
+  .menu-logo-img {
+    max-width: 180px;
+  }
+
+  .menu-subtitle {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  .menu-hero-img, .menu-dog-img {
+    display: none; /* Esconde para não poluir telas pequenas */
+  }
+
+  .menu-input-card {
+    margin-bottom: 14px;
+    padding: 8px 14px;
+  }
+
+  .menu-input-field {
+    font-size: 15px;
+  }
+
+  .menu-btn {
+    font-size: 13px;
+    padding: 12px 24px;
+  }
+
+  .menu-instructions-card p {
+    font-size: 9px;
+  }
+
+  .ranking-table {
+    font-size: 10px;
+  }
+
+  .antonio {
+    width: 54px;
+    left: 20px;
+    bottom: 24px;
+  }
+
+  .dog {
+    width: 62px;
+    bottom: 20px;
+  }
+
+  @keyframes jump-curve {
+    0% { bottom: 24px; }
+    35% { bottom: 140px; }
+    50% { bottom: 155px; }
+    65% { bottom: 140px; }
+    100% { bottom: 24px; }
+  }
+}

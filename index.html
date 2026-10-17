@@ -2,22 +2,213 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1a1c2e" />
+    <title>Antonio Run</title>
+
+    <!-- Retro & Arcade Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/super-mario-256" rel="stylesheet" />
 
     <link rel="stylesheet" href="./css/style.css" />
     <script src="./js/script.js" defer></script>
-
-    <title>Antonio Run</title>
   </head>
   <body>
-    <div class="game-board">
-      <div class="scenery">
-        <img src="images/background.png" alt="1">
-        <img src="images/background.png" alt= "2">
+    <main class="game-wrapper">
+      <!-- Container principal do jogo -->
+      <div id="game-board" class="game-board">
+        <!-- Cenário animado de fundo -->
+        <div class="scenery" id="scenery">
+          <img src="images/background.png" alt="Cenário 1" />
+          <img src="images/background.png" alt="Cenário 2" />
+        </div>
+
+        <!-- Nuvens no céu -->
+        <img src="images/clouds.png" class="clouds" alt="Nuvens" />
+
+        <!-- Moedas geradas dinamicamente -->
+        <div id="coins-container" class="coins-container"></div>
+
+        <!-- Personagens do Jogo -->
+        <img src="images/antonio.gif" class="antonio" id="antonio" alt="Antonio" />
+        <img src="images/dog.gif" class="dog" id="dog" alt="Pretinha" />
+
+        <!-- HUD Superior Durante a Corrida (Estilo Figma) -->
+        <header id="game-hud" class="game-hud hide">
+          <!-- Card Jogador -->
+          <div class="hud-card hud-player">
+            <span class="hud-label">jogador</span>
+            <span class="hud-value" id="hud-player-name">antonio</span>
+          </div>
+
+          <!-- Card Tempo -->
+          <div class="hud-card hud-timer">
+            <span class="hud-label">tempo</span>
+            <span class="hud-value" id="hud-timer-value">00</span>
+          </div>
+
+          <!-- Card Moedas -->
+          <div class="hud-card hud-coins">
+            <div class="hud-coins-header">
+              <img src="images/coin.png" class="hud-coin-icon" alt="Moeda" />
+              <span class="hud-label">moedas:</span>
+            </div>
+            <span class="hud-value" id="hud-coins-value">00</span>
+          </div>
+
+          <!-- Botão de Som / Mudo -->
+          <button id="sound-toggle-btn" class="sound-toggle-btn" title="Ligar/Desligar som" aria-label="Som">
+            🔊
+          </button>
+        </header>
+
+        <!-- Indicador de pulo para celular / touch -->
+        <div id="mobile-touch-hint" class="mobile-touch-hint hide">
+          <span>👆 TOQUE PARA PULAR</span>
+        </div>
+
+        <!-- Popups de Pontos (+2 ao pegar moeda) -->
+        <div id="floating-scores" class="floating-scores"></div>
+
+        <!-- MÁSCARA ESCURA PARA MODAIS -->
+        <div id="screen-mask" class="screen-mask"></div>
+
+        <!-- ============================================== -->
+        <!-- MODAL 1: MENU INICIAL (Figma Frame 'Menu')    -->
+        <!-- ============================================== -->
+        <section id="menu-modal" class="game-modal menu-modal">
+          <div class="menu-box">
+            <!-- Moedas decorativas de fundo -->
+            <div class="decor-coins" aria-hidden="true">
+              <img src="images/coin.png" class="decor-coin c1" alt="" />
+              <img src="images/coin.png" class="decor-coin c2" alt="" />
+              <img src="images/coin.png" class="decor-coin c3" alt="" />
+              <img src="images/coin.png" class="decor-coin c4" alt="" />
+              <img src="images/coin.png" class="decor-coin c5" alt="" />
+            </div>
+
+            <!-- Personagens decorativos nas pontas -->
+            <img src="images/hero-menu.png" class="menu-hero-img" alt="Antonio" />
+            <img src="images/dog-menu.png" class="menu-dog-img" alt="Pretinha" />
+
+            <!-- Logo -->
+            <div class="menu-logo-container">
+              <img src="images/logo.png" class="menu-logo-img" alt="ANtonio Run" />
+            </div>
+
+            <h2 class="menu-subtitle">pronto para um novo desafio ?</h2>
+
+            <!-- Formulário de Nome do Jogador -->
+            <div class="menu-input-card">
+              <label for="player-name-input" class="menu-input-label">jogador</label>
+              <input
+                type="text"
+                id="player-name-input"
+                class="menu-input-field"
+                value="Antonio"
+                maxlength="14"
+                placeholder="Seu nome"
+                autocomplete="off"
+              />
+            </div>
+
+            <!-- Botão Iniciar -->
+            <button id="start-game-btn" class="menu-btn start-btn">
+              iniciar jogo
+            </button>
+
+            <!-- Card de Instruções -->
+            <div class="menu-instructions-card">
+              <p>utilize a tecla SPACE ou toque na tela para fugir da pretinha e coletar as moedas</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- MODAL 2: GAME OVER (Figma Frame 'Game-Over')   -->
+        <!-- ============================================== -->
+        <section id="game-over-modal" class="game-modal game-over-modal hide">
+          <div class="game-over-box">
+            <!-- Banner / Gráfico de Game Over -->
+            <div class="game-over-banner-container">
+              <img src="images/game-over-banner.png" class="game-over-banner-img" alt="Game Over" />
+            </div>
+
+            <h2 class="game-over-title">que pena, você perdeu !</h2>
+
+            <!-- Estatísticas da rodada -->
+            <div class="round-stats-container">
+              <div class="stat-pill">
+                <span class="stat-label">Moedas:</span>
+                <span class="stat-val" id="stats-coins">0</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-label">Tempo:</span>
+                <span class="stat-val" id="stats-time">0s</span>
+              </div>
+              <div class="stat-pill highlight">
+                <span class="stat-label">Pontuação:</span>
+                <span class="stat-val" id="stats-score">0</span>
+              </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="modal-buttons-row">
+              <button id="show-ranking-btn" class="menu-btn green-btn">
+                ranking
+              </button>
+              <button id="restart-game-btn" class="menu-btn green-btn">
+                reiniciar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- MODAL 3: RANKING (Figma Frame 'Ranking')       -->
+        <!-- ============================================== -->
+        <section id="ranking-modal" class="game-modal ranking-modal hide">
+          <div class="ranking-box">
+            <h2 class="ranking-title">ranking</h2>
+
+            <!-- Tabela de Classificação -->
+            <div class="ranking-table-container">
+              <table class="ranking-table">
+                <thead>
+                  <tr>
+                    <th>posicao</th>
+                    <th>jogador</th>
+                    <th>moedas</th>
+                    <th>tempo</th>
+                    <th>Pontuacao</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-table-body">
+                  <!-- Linhas injetadas via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Regras de Pontuação (Figma) -->
+            <div class="ranking-rules-card">
+              <p>**Regras: Cada moeda coletada vale 2 pontos e cada segundo do jogo vale 1 ponto.</p>
+            </div>
+
+            <!-- Botão de retorno / reinício -->
+            <button id="ranking-restart-btn" class="menu-btn green-btn">
+              reiniciar
+            </button>
+          </div>
+        </section>
       </div>
-      <img src="images/clouds.png" class="clouds" />
-      <img src="images/antonio.gif" class="antonio" />
-      <img src="images/dog.gif" class="dog"/>
-    </div>
+    </main>
   </body>
 </html>
