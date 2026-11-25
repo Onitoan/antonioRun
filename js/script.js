@@ -139,10 +139,11 @@ soundToggleBtn.addEventListener('click', (e) => {
 // ESTADO DO JOGO E VARIÁVEIS
 // ============================================================
 let gameState = 'MENU'; // 'MENU' | 'PLAYING' | 'GAME_OVER' | 'RANKING'
-let playerName = 'Antonio';
+let playerName = '';
 let secondsElapsed = 0;
 let coinsCount = 0;
 let isJumping = false;
+let jumpSafeUntil = 0;
 
 let gameLoopInterval = null;
 let timerInterval = null;
@@ -170,14 +171,15 @@ function triggerJump() {
   if (isJumping) return;
 
   isJumping = true;
+  jumpSafeUntil = performance.now() + 820;
   antonio.classList.add('jump');
   playJumpSound();
 
-  // Duração da animação é 520ms
+  // Keep the player safe for the full jump and a short landing grace period.
   setTimeout(() => {
     antonio.classList.remove('jump');
     isJumping = false;
-  }, 520);
+  }, 720);
 }
 
 // Controles de teclado e toque
@@ -197,6 +199,7 @@ gameBoard.addEventListener('pointerdown', (e) => {
   if (e.target.closest('button') || e.target.closest('input')) return;
   if (gameState === 'PLAYING') {
     e.preventDefault();
+    mobileTouchHint.classList.add('hide');
     triggerJump();
   }
 });
@@ -320,6 +323,7 @@ function startGameLoops() {
     const boardRect = gameBoard.getBoundingClientRect();
     const antonioRect = antonio.getBoundingClientRect();
     const dogRect = dog.getBoundingClientRect();
+    const now = performance.now();
 
     // 1. Verificação de Colisão com a Pretinha (Dog)
     // Usamos caixas de colisão ajustadas para ser justo e responsivo
@@ -335,7 +339,7 @@ function startGameLoops() {
     const dTop = dogRect.top + 8;
     const dBottom = dogRect.bottom;
 
-    const isCollidingWithDog = (
+    const isCollidingWithDog = now >= jumpSafeUntil && (
       aRight > dLeft &&
       aLeft < dRight &&
       aBottom > dTop &&
@@ -348,7 +352,6 @@ function startGameLoops() {
     }
 
     // 2. Atualização e Coleta de Moedas
-    const now = performance.now();
     activeCoins = activeCoins.filter((coinObj) => {
       const stillActive = coinObj.update(now);
       if (!stillActive || coinObj.collected) return false;
@@ -402,22 +405,23 @@ function startGameLoops() {
 // Aumenta a velocidade do jogo progressivamente
 function updateGameSpeed() {
   const speedRate = Math.min(1.0 + (secondsElapsed * 0.025), 2.4);
+  const scenerySpeedRate = speedRate * 1.5;
+  const cloudSpeedRate = Math.min(1.0 + (secondsElapsed * 0.012), 1.8);
+  const baseSceneryDuration = window.matchMedia('(max-width: 768px)').matches ? 16 : 25.6;
 
   try {
     const sceneryAnims = scenery.getAnimations();
-    sceneryAnims.forEach(anim => { anim.playbackRate = speedRate; });
+    sceneryAnims.forEach(anim => { anim.playbackRate = scenerySpeedRate; });
 
     const dogAnims = dog.getAnimations();
     dogAnims.forEach(anim => { anim.playbackRate = speedRate; });
 
     const cloudsAnims = clouds.getAnimations();
-    cloudsAnims.forEach(anim => { anim.playbackRate = Math.min(1.0 + (secondsElapsed * 0.012), 1.8); });
+    cloudsAnims.forEach(anim => { anim.playbackRate = cloudSpeedRate; });
   } catch (e) {
-    // Fallback
-    const newSceneryDuration = Math.max(6.5, 16 - (secondsElapsed * 0.25));
-    scenery.style.animationDuration = `${newSceneryDuration}s`;
-    const newDogDuration = Math.max(1.6, 3.6 - (secondsElapsed * 0.06));
-    dog.style.animationDuration = `${newDogDuration}s`;
+    scenery.style.animationDuration = `${baseSceneryDuration / scenerySpeedRate}s`;
+    dog.style.animationDuration = `${3.6 / speedRate}s`;
+    clouds.style.animationDuration = `${18 / cloudSpeedRate}s`;
   }
 }
 
@@ -456,7 +460,7 @@ function handleGameOver() {
   // Pontuação = (Moedas * 2) + Tempo
   const finalScore = (coinsCount * 2) + secondsElapsed;
 
-  // Salva no Ranking
+  // Salva no ranking local.
   saveScoreToRanking(playerName, coinsCount, secondsElapsed, finalScore);
 
   // Atualiza modal de Game Over
@@ -495,16 +499,13 @@ function getRanking() {
 function saveScoreToRanking(name, coins, time, score) {
   const ranking = getRanking();
   ranking.push({
-    name: name.trim() || 'Antonio',
+    name: name.trim() || 'Jogador',
     coins: coins,
     time: time,
     score: score
   });
 
-  // Ordena por pontuação decrescente
   ranking.sort((a, b) => b.score - a.score);
-
-  // Mantém os 10 melhores
   const top10 = ranking.slice(0, 10);
   try {
     localStorage.setItem('antonio_run_ranking', JSON.stringify(top10));
@@ -513,21 +514,22 @@ function saveScoreToRanking(name, coins, time, score) {
 
 function renderRankingTable() {
   const ranking = getRanking();
-  rankingTableBody.innerHTML = '';
+  rankingTableBody.replaceChildren();
 
   ranking.forEach((entry, idx) => {
     const tr = document.createElement('tr');
     tr.className = `rank-row rank-${idx + 1}`;
 
     const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`;
-
-    tr.innerHTML = `
-      <td class="rank-pos">${medal}</td>
-      <td class="rank-name">${entry.name}</td>
-      <td>${entry.coins}</td>
-      <td>${entry.time}s</td>
-      <td class="rank-score">${entry.score}</td>
-    `;
+    const values = [medal, entry.name, entry.coins, `${entry.time}s`, entry.score];
+    values.forEach((value, cellIndex) => {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      if (cellIndex === 0) cell.className = 'rank-pos';
+      if (cellIndex === 1) cell.className = 'rank-name';
+      if (cellIndex === 4) cell.className = 'rank-score';
+      tr.appendChild(cell);
+    });
     rankingTableBody.appendChild(tr);
   });
 }
@@ -546,7 +548,7 @@ function startGame() {
 
   // Salva nome digitado
   const inputVal = playerNameInput.value.trim();
-  playerName = inputVal ? inputVal : 'Antonio';
+  playerName = inputVal || 'Jogador';
   hudPlayerName.textContent = playerName;
 
   // Esconde modais
@@ -565,6 +567,7 @@ function startGame() {
   secondsElapsed = 0;
   coinsCount = 0;
   isJumping = false;
+  jumpSafeUntil = 0;
   hudTimerValue.textContent = '00';
   hudCoinsValue.textContent = '00';
 
@@ -584,6 +587,9 @@ function startGame() {
   dog.classList.remove('hide');
   dog.style.display = '';
   dog.style.animation = '';
+  scenery.style.animationDuration = '';
+  dog.style.animationDuration = '';
+  clouds.style.animationDuration = '';
   dog.style.left = '';
   dog.classList.remove('running');
   dog.classList.remove('paused');
@@ -603,6 +609,7 @@ function startGame() {
   // Define estado e inicia loops
   gameState = 'PLAYING';
   updateOrientationWarning();
+  updateGameSpeed();
   startGameLoops();
   scheduleNextCoin();
 }
@@ -613,9 +620,9 @@ function showRankingScreen() {
   updateOrientationWarning();
   gameOverModal.classList.add('hide');
   menuModal.classList.add('hide');
-  renderRankingTable();
   rankingModal.classList.remove('hide');
   screenMask.classList.remove('hide');
+  renderRankingTable();
 }
 
 // ============================================================
