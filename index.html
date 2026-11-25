@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#1a1c2e" />
+    <meta name="theme-color" content="#0b1c35" />
     <title>Antonio Run</title>
 
     <!-- Retro & Arcade Fonts -->
@@ -18,8 +18,8 @@
     />
     <link href="https://fonts.cdnfonts.com/css/super-mario-256" rel="stylesheet" />
 
-    <link rel="stylesheet" href="./css/style.css?v=2" />
-    <script src="./js/script.js?v=2" defer></script>
+    <link rel="stylesheet" href="./css/style.css?v=5" />
+    <script src="./js/script.js?v=3" defer></script>
   </head>
   <body>
     <main class="game-wrapper">
@@ -81,10 +81,15 @@
         <!-- MÁSCARA ESCURA PARA MODAIS -->
         <div id="screen-mask" class="screen-mask"></div>
 
+        <div id="orientation-warning" class="rotate-phone-please hide" role="status" aria-live="polite">
+          <div class="phone" aria-hidden="true"></div>
+          <div class="message">Vire o celular na horizontal para jogar</div>
+        </div>
+
         <!-- ============================================== -->
         <!-- MODAL 1: MENU INICIAL (Figma Frame 'Menu')    -->
         <!-- ============================================== -->
-        <section id="menu-modal" class="game-modal menu-modal">
+        <section id="menu-modal" class="game-modal menu-modal" aria-labelledby="menu-title">
           <div class="menu-box">
             <!-- Moedas decorativas de fundo -->
             <div class="decor-coins" aria-hidden="true">
@@ -104,7 +109,7 @@
               <img src="images/logo.png" class="menu-logo-img" alt="ANtonio Run" />
             </div>
 
-            <h2 class="menu-subtitle">pronto para um novo desafio ?</h2>
+            <h2 id="menu-title" class="menu-subtitle">pronto para um novo desafio?</h2>
 
             <!-- Formulário de Nome do Jogador -->
             <div class="menu-input-card">
@@ -135,14 +140,13 @@
         <!-- ============================================== -->
         <!-- MODAL 2: GAME OVER (Figma Frame 'Game-Over')   -->
         <!-- ============================================== -->
-        <section id="game-over-modal" class="game-modal game-over-modal hide">
+        <section id="game-over-modal" class="game-modal game-over-modal hide" aria-labelledby="game-over-title">
           <div class="game-over-box">
-            <!-- Banner / Gráfico de Game Over -->
-            <div class="game-over-banner-container">
-              <img src="images/game-over-banner.png" class="game-over-banner-img" alt="Game Over" />
-            </div>
+            <h2 id="game-over-title" class="game-over-title">que pena, você perdeu!</h2>
 
-            <h2 class="game-over-title">que pena, você perdeu !</h2>
+            <div class="game-over-art-container">
+              <img src="images/game-over-banner.png" class="game-over-art-img" alt="Antonio sendo perseguido pela Pretinha" />
+            </div>
 
             <!-- Estatísticas da rodada -->
             <div class="round-stats-container">
@@ -175,9 +179,9 @@
         <!-- ============================================== -->
         <!-- MODAL 3: RANKING (Figma Frame 'Ranking')       -->
         <!-- ============================================== -->
-        <section id="ranking-modal" class="game-modal ranking-modal hide">
+        <section id="ranking-modal" class="game-modal ranking-modal hide" aria-labelledby="ranking-title">
           <div class="ranking-box">
-            <h2 class="ranking-title">ranking</h2>
+            <h2 id="ranking-title" class="ranking-title">ranking</h2>
 
             <!-- Tabela de Classificação -->
             <div class="ranking-table-container">
@@ -199,7 +203,7 @@
 
             <!-- Regras de Pontuação (Figma) -->
             <div class="ranking-rules-card">
-              <p>**Regras: Cada moeda coletada vale 2 pontos e cada segundo do jogo vale 1 ponto.</p>
+              <p>regras: cada moeda vale 2 pontos e cada segundo sobrevivido vale 1 ponto.</p>
             </div>
 
             <!-- Botão de retorno / reinício -->

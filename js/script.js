@@ -20,6 +20,7 @@ const hudTimerValue = document.getElementById('hud-timer-value');
 const hudCoinsValue = document.getElementById('hud-coins-value');
 const soundToggleBtn = document.getElementById('sound-toggle-btn');
 const mobileTouchHint = document.getElementById('mobile-touch-hint');
+const orientationWarning = document.getElementById('orientation-warning');
 
 // Modais e Máscara
 const screenMask = document.getElementById('screen-mask');
@@ -148,6 +149,19 @@ let timerInterval = null;
 let coinSpawnTimeout = null;
 let activeCoins = []; // lista de elementos de moedas ativas
 
+function isMobileViewport() {
+  return window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
+}
+
+function isPortraitMobile() {
+  return isMobileViewport() && window.matchMedia('(orientation: portrait)').matches;
+}
+
+function updateOrientationWarning() {
+  const shouldShow = gameState !== 'PLAYING' && isPortraitMobile();
+  orientationWarning.classList.toggle('hide', !shouldShow);
+}
+
 // ============================================================
 // MECÂNICA DE PULO
 // ============================================================
@@ -205,7 +219,7 @@ function spawnSingleCoin(offsetX = 0, customHeight = null) {
   if (gameState !== 'PLAYING') return;
 
   const boardWidth = gameBoard.offsetWidth;
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = isMobileViewport();
 
   const coin = document.createElement('img');
   coin.src = 'images/coin.png';
@@ -412,6 +426,7 @@ function updateGameSpeed() {
 // ============================================================
 function handleGameOver() {
   gameState = 'GAME_OVER';
+  updateOrientationWarning();
 
   // Para loops
   clearInterval(gameLoopInterval);
@@ -521,6 +536,11 @@ function renderRankingTable() {
 // INÍCIO E REINICIALIZAÇÃO DA PARTIDA
 // ============================================================
 function startGame() {
+  if (isPortraitMobile()) {
+    updateOrientationWarning();
+    return;
+  }
+
   playClickSound();
   initAudio();
 
@@ -537,7 +557,7 @@ function startGame() {
 
   // Mostra HUD
   gameHud.classList.remove('hide');
-  if (window.innerWidth <= 768) {
+  if (isMobileViewport()) {
     mobileTouchHint.classList.remove('hide');
   }
 
@@ -582,6 +602,7 @@ function startGame() {
 
   // Define estado e inicia loops
   gameState = 'PLAYING';
+  updateOrientationWarning();
   startGameLoops();
   scheduleNextCoin();
 }
@@ -589,6 +610,7 @@ function startGame() {
 function showRankingScreen() {
   playClickSound();
   gameState = 'RANKING';
+  updateOrientationWarning();
   gameOverModal.classList.add('hide');
   menuModal.classList.add('hide');
   renderRankingTable();
@@ -607,4 +629,8 @@ showRankingBtn.addEventListener('click', showRankingScreen);
 // Focar input ao carregar
 window.addEventListener('DOMContentLoaded', () => {
   renderRankingTable();
+  updateOrientationWarning();
 });
+
+window.addEventListener('resize', updateOrientationWarning);
+window.addEventListener('orientationchange', updateOrientationWarning);
